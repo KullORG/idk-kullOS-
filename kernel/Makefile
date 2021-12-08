@@ -1,7 +1,11 @@
 KERNEL := kernel.elf
 
-CC ?= cc
-LD ?= ld
+ifeq ($(origin CC), default)
+CC := cc
+endif
+ifeq ($(origin LD), default)
+LD := ld
+endif
 
 CFLAGS  ?= -Wall -Wextra -O2 -pipe
 LDFLAGS ?=
@@ -9,24 +13,24 @@ LDFLAGS ?=
 INTERNALLDFLAGS :=         \
 	-Tlinker.ld            \
 	-nostdlib              \
+	-melf_x86_64           \
 	-zmax-page-size=0x1000 \
-	-static                \
-	-pie                   \
-	--no-dynamic-linker    \
-	-ztext
+	-static
 
 INTERNALCFLAGS :=        \
 	-I.                  \
 	-std=gnu11           \
 	-ffreestanding       \
 	-fno-stack-protector \
-	-fpie                \
+	-fno-pic             \
+	-mabi=sysv           \
 	-mno-80387           \
 	-mno-mmx             \
 	-mno-3dnow           \
 	-mno-sse             \
 	-mno-sse2            \
 	-mno-red-zone        \
+	-mcmodel=kernel      \
 	-MMD
 
 CFILES      := $(shell find ./ -type f -name '*.c')
@@ -36,15 +40,15 @@ HEADER_DEPS := $(CFILES:.c=.d)
 .PHONY: all
 all: $(KERNEL)
 
-stivale.h:
-	curl https://raw.githubusercontent.com/stivale/stivale/master/stivale.h -o $@
+stivale2.h:
+	curl https://raw.githubusercontent.com/stivale/stivale/master/stivale2.h -o $@
 
 $(KERNEL): $(OBJ)
 	$(LD) $(OBJ) $(LDFLAGS) $(INTERNALLDFLAGS) -o $@
 
 -include $(HEADER_DEPS)
 
-%.o: %.c stivale.h
+%.o: %.c stivale2.h
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -c $< -o $@
 
 .PHONY: clean
@@ -53,4 +57,4 @@ clean:
 
 .PHONY: distclean
 distclean: clean
-	rm -f stivale.h
+	rm -f stivale2.h

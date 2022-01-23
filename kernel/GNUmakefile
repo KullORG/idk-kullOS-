@@ -1,8 +1,3 @@
-# This is a Makefile meant for GNU Make. Assert that.
-ifneq (,)
-This makefile requires GNU Make.
-endif
-
 # This is the name that our final kernel executable will have.
 # Change as needed.
 override KERNEL := kernel.elf

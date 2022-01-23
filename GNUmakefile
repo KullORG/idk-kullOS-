@@ -1,11 +1,9 @@
-ISO_IMAGE = disk.iso
-
 .PHONY: all
-all: $(ISO_IMAGE)
+all: barebones.iso
 
 .PHONY: run
-run: $(ISO_IMAGE)
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $(ISO_IMAGE)
+run: barebones.iso
+	qemu-system-x86_64 -M q35 -m 2G -cdrom barebones.iso
 
 limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v2.0-branch-binary --depth=1
@@ -15,7 +13,7 @@ limine:
 kernel:
 	$(MAKE) -C kernel
 
-$(ISO_IMAGE): limine kernel
+barebones.iso: limine kernel
 	rm -rf iso_root
 	mkdir -p iso_root
 	cp kernel/kernel.elf \
@@ -24,13 +22,13 @@ $(ISO_IMAGE): limine kernel
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-eltorito-efi.bin \
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
-		iso_root -o $(ISO_IMAGE)
-	limine/limine-install $(ISO_IMAGE)
+		iso_root -o barebones.iso
+	limine/limine-install barebones.iso
 	rm -rf iso_root
 
 .PHONY: clean
 clean:
-	rm -f $(ISO_IMAGE)
+	rm -f iso_root barebones.iso
 	$(MAKE) -C kernel clean
 
 .PHONY: distclean
